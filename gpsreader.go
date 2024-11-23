@@ -33,32 +33,44 @@ import (
 
 // TODO: Thanks ChatGPT for all your help here, but I'm pretty sure the
 // decimal degrees calculation is incorrect.  I'll need to fix this.
-func parseCoordinate(coord, direction string) (float64, error) {
-	// Example: Convert "4916.45" (49°16.45') into decimal degrees
-	if coord == "" || direction == "" {
-		return 0, fmt.Errorf("empty coordinate or direction")
+func parseCoordinate(coord string, direction string) (float64, error) {
+	var degrees int
+	var minutes float64
+	var err error
+
+	result := 0.0
+
+	// Determine if latitude (DDMM.MMMMM) or longitude (DDDMM.MMMMM)
+	if len(coord) > 10 { // Longitude (DDDMM.MMMMM)
+		degrees, err = strconv.Atoi(coord[:3]) // First 3 digits
+		if err != nil {
+			return 0, fmt.Errorf("error parsing degrees: %v", err)
+		}
+		minutes, err = strconv.ParseFloat(coord[3:], 64) // Remaining part
+		if err != nil {
+			return 0, fmt.Errorf("error parsing minutes: %v", err)
+		}
+	} else { // Latitude (DDMM.MMMMM)
+		degrees, err = strconv.Atoi(coord[:2]) // First 2 digits
+
+		log.Print(degrees)
+		if err != nil {
+			return 0, fmt.Errorf("error parsing degrees: %v", err)
+		}
+		minutes, err = strconv.ParseFloat(coord[2:], 64) // Remaining part
+		if err != nil {
+			return 0, fmt.Errorf("error parsing minutes: %v", err)
+		}
 	}
 
-	// Parse degrees and minutes from the NMEA format
-	degrees, err := strconv.ParseFloat(coord[:len(coord)-7], 64)
-	if err != nil {
-		return 0, err
-	}
+	result = float64(degrees) + (minutes / 60)
 
-	minutes, err := strconv.ParseFloat(coord[len(coord)-7:], 64)
-	if err != nil {
-		return 0, err
-	}
-
-	// Calculate decimal degrees
-	decimalDegrees := (degrees + minutes/60) / 10
-
-	// Adjust for direction
 	if direction == "S" || direction == "W" {
-		decimalDegrees = -decimalDegrees
+		result = -result
 	}
 
-	return decimalDegrees, nil
+	return result, nil
+
 }
 
 func parseGPGLL(sentence string) (bool, float64, float64) {
@@ -117,12 +129,25 @@ func main() {
 		BaudRate: 115200,
 	}
 
-	port, err := serial.Open("/dev/cu.usbmodem11101", mode)
-	if err != nil {
-		log.Println("Error opening serial port")
-		log.Fatal(err)
+	// For the Mac
+	// port, err := serial.Open("/dev/cu.usbmodem11101", mode)
+
+	// For the Pi
+	serialDevices := []string{"/dev/ttyACM0",
+		"/dev/ttyACM1",
+		"/dev/ttyACM2",
+		"/dev/ttyACM3"}
+
+	var port serial.Port
+	for _, device := range serialDevices {
+		port, err = serial.Open(device, mode)
+		if err != nil {
+			log.Printf("Error opening serial port %s: (%v)\n", device, err)
+		} else {
+			defer port.Close()
+			break
+		}
 	}
-	defer port.Close()
 
 	reader := bufio.NewReader(port)
 	for {

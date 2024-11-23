@@ -1,6 +1,6 @@
 module iachieved.it/gpsreader
 
-go 1.23.2
+go 1.23
 
 require (
 	github.com/creack/goselect v0.1.2 // indirect

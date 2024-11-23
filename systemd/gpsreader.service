@@ -1,0 +1,15 @@
+[Unit]
+Description = gpsreader
+After = network-online.target
+
+[Service]
+User = pi
+Group = pi
+Type = simple
+WorkingDirectory=/tmp
+ExecStart=/usr/local/bin/gpsreader
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
