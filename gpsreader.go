@@ -50,7 +50,6 @@ func parseCoordinate(coord string, direction string) (float64, error) {
 	} else { // Latitude (DDMM.MMMMM)
 		degrees, err = strconv.Atoi(coord[:2]) // First 2 digits
 
-		log.Print(degrees)
 		if err != nil {
 			return 0, fmt.Errorf("error parsing degrees: %v", err)
 		}
@@ -126,14 +125,14 @@ func main() {
 		BaudRate: 115200,
 	}
 
-	// For the Mac
-	// port, err := serial.Open("/dev/cu.usbmodem11101", mode)
-
 	// For the Pi
-	serialDevices := []string{"/dev/ttyACM0",
+	/*	serialDevices := []string{"/dev/ttyACM0",
 		"/dev/ttyACM1",
 		"/dev/ttyACM2",
-		"/dev/ttyACM3"}
+		"/dev/ttyACM3"} */
+
+	// For the Mac
+	serialDevices := []string{"/dev/cu.usbmodem11101"}
 
 	var port serial.Port
 	for _, device := range serialDevices {
@@ -157,10 +156,10 @@ func main() {
 		// Trim whitespace and check if the line contains GPGLL
 		line = strings.TrimSpace(line)
 		if strings.HasPrefix(line, "$GPGLL") {
-			fmt.Printf("GPGLL: %s\n", line)
+			log.Printf("%s\n", line)
 			valid, lat, lng := parseGPGLL(line)
 			if valid {
-				fmt.Printf("Latitude: %f, Longitude: %f\n", lat, lng)
+				log.Printf("%f,%f\n", lat, lng)
 				publisher.Send(fmt.Sprintf("%f/%f", lat, lng), 0)
 			}
 		}
