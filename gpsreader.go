@@ -30,6 +30,9 @@ import (
 )
 
 // Helper function to parse NMEA coordinates
+
+// TODO: Thanks ChatGPT for all your help here, but I'm pretty sure the
+// decimal degrees calculation is incorrect.  I'll need to fix this.
 func parseCoordinate(coord, direction string) (float64, error) {
 	// Example: Convert "4916.45" (49°16.45') into decimal degrees
 	if coord == "" || direction == "" {
