@@ -30,9 +30,6 @@ import (
 )
 
 // Helper function to parse NMEA coordinates
-
-// TODO: Thanks ChatGPT for all your help here, but I'm pretty sure the
-// decimal degrees calculation is incorrect.  I'll need to fix this.
 func parseCoordinate(coord string, direction string) (float64, error) {
 	var degrees int
 	var minutes float64
@@ -89,7 +86,8 @@ func parseGPGLL(sentence string) (bool, float64, float64) {
 	lonDir := fields[4]
 	status := fields[6]
 
-	// Check if the status indicates valid data ('A' means valid, 'V' means invalid)
+	// Check if the status indicates valid data
+	// ('A' means valid, 'V' means invalid)
 	if status != "A" {
 		log.Printf("Invalid GPGLL sentence: %s", sentence)
 		return false, 0, 0
@@ -112,7 +110,6 @@ func parseGPGLL(sentence string) (bool, float64, float64) {
 }
 
 func main() {
-	fmt.Println("Hello, World!")
 
 	publisher, err := zmq4.NewSocket(zmq4.PUB)
 	if err != nil {
@@ -120,7 +117,7 @@ func main() {
 	}
 	defer publisher.Close()
 
-	err = publisher.Bind("tcp://*:11205")
+	err = publisher.Bind("tcp://*:11111")
 	if err != nil {
 		log.Fatal(err)
 	}
